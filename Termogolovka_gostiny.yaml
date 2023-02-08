@@ -1,0 +1,40 @@
+
+      - sensor:
+          - unique_id: "trv_gostiny"   
+            name: "trv_bedroom_calibration_gostiny_new"
+            unit_of_measurement: "°C"
+            state: >
+              {% set sensor_t=(states('sensor.aqara_temp_gostiny_temperature')|float / 0.1)| round * 0.1 %}
+              {% set trv_t=state_attr('climate.termogolovka_gostiny','current_temperature')|float %}
+              {% set trv_c=states('number.termogolovka_gostiny_local_temperature_calibration')|float %}
+              {% set calibr=(sensor_t-trv_t+trv_c| float)| round(2) %}
+              {% if calibr|abs <= 5 %}
+          
+              {{calibr}}
+              {% else %}
+              {{0}}
+              {% endif %}
+
+      - sensor: 
+          - unique_id: "termogolovca_local_gostiny"
+            name: "темп головка гостиная"      
+            unit_of_measurement: '°C'
+            state: >
+              {{ state_attr('climate.termogolovka_gostiny','current_temperature') }}
+                   
+
+
+      - binary_sensor:
+          - unique_id: "kalibr_gostiny"        
+            name: 'kalibrovka_gostiny'
+            state: >
+              {{ (states('sensor.temp_golovka_na_gostinaia')|float - states('sensor.aqara_temp_gostiny_temperature')|float)|abs >= 0.5  }}
+  
+  
+              
+          - unique_id: "kalibr"   
+            name: "сбой калибровки гостиная"
+            delay_on:
+              seconds: 60
+            state: >
+              {{ states('binary_sensor.kalibrovka_gostiny') == ("on")  }}               

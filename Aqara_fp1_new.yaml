@@ -1,0 +1,14 @@
+#Aqara_fp1_new:
+#    template:
+      
+      - binary_sensor:
+          - unique_id: "fp1_motion_new"        
+            name: 'fp1_motion_new'
+            state: >
+              {{not is_state("sensor.prisutstvie_vanna_presence_event", "leave")}}
+            device_class: motion
+
+
+
+
+      

@@ -1,0 +1,38 @@
+      - sensor:
+          - unique_id: "trv_kitchen"   
+            name: "trv_bedroom_calibration_kitchen_new"
+            unit_of_measurement: "°C"
+            state: >
+              {% set sensor_t=(states('sensor.aqara_temp_kitchen_temperature')|float / 0.1)| round * 0.1 %}
+              {% set trv_t=state_attr('climate.termogolovka_kitchen','current_temperature')|float %}
+              {% set trv_c=states('number.termogolovka_kitchen_local_temperature_calibration')|float %}
+              {% set calibr=(sensor_t-trv_t+trv_c| float)| round(2) %}
+              {% if calibr|abs <= 5 %}
+          
+              {{calibr}}
+              {% else %}
+              {{0}}
+              {% endif %}
+
+      - sensor: 
+          - unique_id: "termogolovca_local_kitchen"
+            name: "темп головка кухня"      
+            unit_of_measurement: '°C'
+            state: >
+              {{ state_attr('climate.termogolovka_kitchen','current_temperature') }}
+                   
+
+
+      - binary_sensor:
+          - unique_id: "kalibr_kitchen"        
+            name: 'kalibrovka_kitchen'
+            state: >
+              {{ (states('sensor.temp_golovka_kukhnia')|float - states('sensor.aqara_temp_kitchen_temperature')|float)|abs >= 0.5 }}
+
+
+          - unique_id: "kalibr_2"   
+            name: "сбой калибровки кухня"
+            delay_on:
+              seconds: 60
+            state: >
+              {{ states('binary_sensor.kalibrovka_kitchen') == ("on")  }}  
