@@ -186,7 +186,7 @@ sensor:
               - lambda: 'return id(resist).state < 20;'
               - light.is_on: mylight
             then:
-              light.turn_on:
+              light.control:
                 id: mylight
                 brightness: 50%
 
@@ -195,7 +195,7 @@ sensor:
               - lambda: 'return id(resist).state > 20;'
               - light.is_on: mylight
             then:
-              light.turn_on:
+              light.control:
                 id: mylight
                 brightness: 100%    
 
