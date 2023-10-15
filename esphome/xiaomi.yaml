@@ -13,6 +13,7 @@ logger:
 # Enable Home Assistant API
 api:
 
+
 ota:
   password: "846e63a45ee74634ddd3206f21b8fd78"
 
@@ -35,15 +36,46 @@ captive_portal:
 web_server:
   port: 80
 
+#прокси
 #bluetooth_proxy:
-#esp32_ble_tracker:
+  #active: true
+
+
+
+esp32_ble_tracker:
 #xiaomi_ble:
 
-sensor:
 
- - platform: wifi_signal
-   name: "WiFi Signal Sensor"
-   update_interval: 60s    
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal Sensor"
+    update_interval: 60s 
+    
+
+  - platform: uptime
+    id: device_uptime
+      #    internal: true
+
+
+text_sensor:
+  - platform: template
+    name: "Uptime"
+    lambda: |-
+      uint32_t uptime = (id(device_uptime).state);
+      int minutes = (uptime % 3600) / 60;
+      int hours = (uptime % 86400) / 3600;
+      int days = uptime / 86400;
+      if (days > 0) {
+        return { (String(days) + " д." + String(hours) + " ч." + String(minutes) + " мин.").c_str() };
+      }
+      if (hours > 0) {
+        return { (String(hours) + " ч. " + String(minutes) + " мин.").c_str() };
+      } else {
+          return { (String(minutes) + " мин.").c_str() };
+        } 
+    update_interval: 60s
+    icon: mdi:clock-start                     
  
  
 binary_sensor:
@@ -54,7 +86,31 @@ binary_sensor:
       mode:
         input: true
         pullup: true
-    name: "Состояние телевизора"  
+    name: "Состояние телевизора" 
+    id: sens_state
+    on_state:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_off: sens_state
+            then:
+              - light.turn_off: lighten
+        - if:
+            condition:
+              binary_sensor.is_on: sens_state
+            then:
+              - light.turn_on: 
+                  id: lighten
+                  brightness: 40%
+
+                  green: 60%
+              
+                  red: 100%
+                  blue: 15%
+
+  
+                  
+     
        
 # Example configuration entry
 
@@ -67,6 +123,8 @@ light:
     color_correct: [60%, 60%, 60%]
     #restore_mode: "Мой рандом"
     name: "Подсветка телевизора"
+    default_transition_length: 5s
+    id: lighten
     
   
 
