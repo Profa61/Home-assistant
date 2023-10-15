@@ -24,6 +24,8 @@ wifi:
     password: "GWgegOl0g9Rh"
     
 captive_portal:
+web_server:
+  port: 80
 
 
 
@@ -43,7 +45,8 @@ fan:
 
   - platform: speed
     output: pwm_output
-#    speed_count: 10
+    speed_count: 100
+    id: speed_fan
     #speed_count: 1: 55
    # speed_count: 2: 200
     name: "скорость обдува"
@@ -53,18 +56,55 @@ output:
   - platform: esp8266_pwm
     pin: GPIO12
     id: pwm_output
-#    frequency: 1000 Hz
- #   speed: 2: 55
+    frequency: 1.55 Hz
+    
 
 
 
 # Example configuration entry
 switch:
+  #- platform: gpio
+  #  pin: GPIO12
+  #  name: "Скорость обдува"
+  #  id: speed_fan
+
   - platform: gpio
     pin: GPIO15
     name: "Увлажнитель"
     id: uvl_rele
-  
+    on_turn_off:
+    - fan.turn_off: speed_fan
+    - light.turn_off: lighten
+    on_turn_on:
+      # - fan.turn_on: speed_fan
+      # - light.turn_on: lighten
+      - if:
+          condition:
+            binary_sensor.is_off: voda
+          then:
+            - switch.turn_on: uvl_rele
+            - delay: 1s
+            - switch.turn_off: uvl_rele
+            - fan.turn_off: speed_fan
+            - light.turn_off: lighten
+            - repeat:
+                count: 3
+                then:
+                  - light.turn_on: lighten
+                  - delay: 800ms
+                  - light.turn_off: lighten
+                  - delay: 800ms
+
+
+          else:            
+            - switch.turn_on: uvl_rele
+            - fan.turn_on: speed_fan
+            - light.turn_on: lighten          
+
+
+
+
+    
   
 binary_sensor:
   - platform: gpio
@@ -76,12 +116,41 @@ binary_sensor:
         pullup: true
     name: "Вода в увлажнителе"
     id: voda
+    on_state:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_off: voda
+
+            then:
+              - switch.turn_off: uvl_rele
+              - fan.turn_off: speed_fan
+              - light.turn_off: lighten
+              - repeat:
+                  count: 10
+                    
+                  then:
+                    - light.turn_on: lighten
+                    - delay: 1s
+                    - light.turn_off: lighten
+                    - delay: 2s
+                    #- switch.turn_off: uvl_rele
+
+        # - while:
+        #     condition:
+        #       binary_sensor.is_off: voda
+        #     then:
+        #       - light.turn_on: lighten
+        #       - delay: 1s
+        #       - light.turn_off: lighten
+
+
+# interval:
+#   - interval: 10s
+#     then:
+#       - component.update: voda
+#       #: pwm_output: 
     
-  
-# kjuyttt  
-   #      if(id(voda).off){
-     #     (id(uvl_rele).turn_off)
-        #   }
 
 # Example configuration entry
 light:
@@ -93,6 +162,7 @@ light:
     color_correct: [90%, 90%, 90%]
     #restore_mode: ALWAYS_ON
     name: "Подсветка увлажнителя"
+    id: lighten
     
   
 
