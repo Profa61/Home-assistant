@@ -1,0 +1,50 @@
+esphome:
+  name: test-co2
+  friendly_name: Test_co2
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "dpzOc152BfbI54IXRux9hbqyh3BMyzBpNotn2Gr2o6o="
+
+ota:
+  password: "fb4c5ed1287f3e5bbf213ac43f17823e"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Test-Co2 Fallback Hotspot"
+    password: "gmhLvt83Ov4V"
+
+captive_portal:
+
+
+i2c:
+  sda: 21
+  scl: 22
+  frequency: 10kHz
+  scan: true
+  id: bus_a 
+
+
+sensor:
+  - platform: iaqcore
+    i2c_id: bus_a
+    address: 0x5A
+    update_interval: 20s
+    co2:
+      name: "iAQ Core CO2 Sensor"
+    tvoc:
+      name: "iAQ Core TVOC Sensor"
+    
